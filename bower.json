@@ -1,0 +1,6 @@
+{
+    "name": "igniweb/oauth",
+    "dependencies": {
+        "semantic-ui": "~1.6.4"
+    }
+}

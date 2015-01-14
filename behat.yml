@@ -1,0 +1,13 @@
+default:
+    autoload:
+        '': test/features/bootstrap
+    extensions:
+        Behat\MinkExtension:
+            base_url: 'http://igniweb-oauth.dev'
+            sessions:
+                default:
+                    goutte: ~
+    suites:
+        acceptance:
+            paths: [test/features/acceptance]
+            contexts: [AcceptanceFeatureContext]

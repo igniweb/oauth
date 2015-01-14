@@ -1,0 +1,7 @@
+formatter.name: pretty
+suites:
+  oauth_suite:
+    namespace: Igniweb\OAuth
+    spec_prefix: spec
+    spec_path: test
+    src_path: src
