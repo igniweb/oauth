@@ -1,5 +1,8 @@
 <?php namespace Igniweb\OAuth\Providers;
 
+use Igniweb\OAuth\Tokens\AccessToken;
+use Igniweb\OAuth\User;
+
 interface ProviderInterface {
 
     /**
@@ -7,6 +10,19 @@ interface ProviderInterface {
      * @return string
      */
     public function urlAuthorize();
+
+    /**
+     * Return provider access token URL
+     * @return string
+     */
+    public function urlAccessToken();
+
+    /**
+     * Return provider user details oauth API URL
+     * @param AccessToken $token
+     * @return string
+     */
+    public function urlUserDetails(AccessToken $token);
 
     /**
      * Return provider authorization URL
@@ -17,10 +33,23 @@ interface ProviderInterface {
 
     /**
      * Return provider authorization token
-     * @param string $grant
-     * @param array $params
+     * @param array $options
      * @return string
      */
-    public function getAccessToken($grant = 'authorization_code', $params = []);
+    public function getAccessToken($options = []);
+
+    /**
+     * Return an array containing user informations
+     * @param AccessToken $token
+     * @return array
+     */
+    public function getUser(AccessToken $token);
+
+    /**
+     * Return an OAuth\User object
+     * @param object $response
+     * @return User
+     */
+    public function userDetails($response);
     
 }
