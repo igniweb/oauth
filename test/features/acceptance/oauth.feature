@@ -6,4 +6,4 @@ Feature: Signin via oauth2 (Google)
     Scenario: Click on signin button
         Given I am on "/signin.php"
         When I follow "signin_google"
-        Then the URL should match "http://www.google.fr"
+        Then I should see "Sign in - Google Accounts"

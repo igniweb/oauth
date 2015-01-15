@@ -3,7 +3,7 @@ default:
         '': test/features/bootstrap
     extensions:
         Behat\MinkExtension:
-            base_url: 'http://igniweb-oauth.dev'
+            base_url: 'http://sand.igniweb.net/oauth/examples'
             sessions:
                 default:
                     goutte: ~

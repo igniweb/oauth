@@ -1,3 +1,43 @@
+<?php
+require '../vendor/autoload.php';
+
+session_start();
+
+$options = [
+    'clientId'     => '644622676486-urh79l905tblnoq3pndlbcr66stppsme.apps.googleusercontent.com',
+    'clientSecret' => 'G96xtZ7nxXnI6i55pcJ_2YKx',
+    'redirectUri'  => 'http://sand.igniweb.net/oauth/examples/oauth.php',
+    'scopes'       => 'email',
+];
+
+$provider = new Igniweb\OAuth\Providers\Google($options);
+
+if ( ! isset($_GET['code']))
+{
+    $_SESSION['state'] = $provider->state;
+    $authUrl = $provider->getAuthorizationUrl();
+}
+elseif (empty($_GET['state']) or ($_GET['state'] !== $_SESSION['state']))
+{
+    unset($_SESSION['state']);
+    die('Error 403');
+}
+else
+{
+    $token = $provider->getAccessToken('authorization_code', [
+        'code' => $_GET['code'],
+    ]);
+
+    try
+    {
+        $user = $provider->getUser($token);
+    }
+    catch (Exception $e)
+    {
+        die('No user');
+    }
+}
+?>
 <!doctype html>
 <html>
 <head>
@@ -18,12 +58,16 @@
 <body>
     <div class="container">
         <h2 class="ui dividing header">OAuth examples</h2>
-        <a href="http://www.google.fr" id="signin_google">
-            <div class="ui google plus button">
-                <i class="google plus icon"></i>
-                Google Plus
-            </div>
-        </a>
+        <?php if (isset($authUrl)) : ?>
+            <a href="<?php echo $authUrl; ?>" id="signin_google">
+                <div class="ui google plus button">
+                    <i class="google plus icon"></i>
+                    Google Plus
+                </div>
+            </a>
+        <?php else : ?>
+            <pre><?php print_r($user); ?></pre>
+        <?php endif; ?>
     </div>
 </body>
 </html>

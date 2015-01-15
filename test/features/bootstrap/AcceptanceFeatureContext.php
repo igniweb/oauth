@@ -7,5 +7,4 @@ use Behat\MinkExtension\Context\MinkContext;
 
 class AcceptanceFeatureContext extends MinkContext implements SnippetAcceptingContext {
 
-
 }
