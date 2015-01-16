@@ -1,31 +1,30 @@
 <?php
+
 require '../vendor/autoload.php';
 
-session_start();
+$redirectUri = $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
 
+/*
 $provider = new Igniweb\OAuth\Providers\Google([
     'clientId'     => '644622676486-urh79l905tblnoq3pndlbcr66stppsme.apps.googleusercontent.com',
     'clientSecret' => 'G96xtZ7nxXnI6i55pcJ_2YKx',
-    'redirectUri'  => 'http://sand.igniweb.net/oauth/examples/oauth.php',
-    'scopes'       => 'email',
+    'redirectUri'  => $redirectUri,
+    'scopes'       => ['email'],
+]);
+*/
+
+$provider = new Igniweb\OAuth\Providers\Github([
+    'clientId'     => 'dd860cd3a216bedcae6f',
+    'clientSecret' => 'e201dade2773e9911c2ab3b06a4c6bd932f7b7c5',
+    'redirectUri'  => $redirectUri,
+    'scopes'       => ['user', 'email'],
 ]);
 
-if ( ! isset($_GET['code']))
-{   // No auto-response
-    $_SESSION['state'] = $provider->state;
-    $authUrl = $provider->getAuthorizationUrl();
-}
-elseif (empty($_GET['state']) or ($_GET['state'] != $_SESSION['state']))
-{   // CSRF protection
-    unset($_SESSION['state']);
-    die('Error 403');
-}
-else
-{   // Auto-response, try to get user information
-    $token = $provider->getAccessToken(['code' => $_GET['code']]);
+if (isset($_GET['code']))
+{   
     try
     {
-        $user = $provider->getUser($token);
+        $user = $provider->user($_GET['code']);
     }
     catch (Exception $e)
     {
@@ -54,12 +53,21 @@ else
     <div class="container">
         <h2 class="ui dividing header">OAuth examples</h2>
 
-        <?php if (isset($authUrl)) : ?>
+        <?php if ( ! isset($user)) : ?>
 
-            <a href="<?php echo $authUrl; ?>" id="signin_google">
+            <!--
+            <a href="<?php echo $provider->authorizationUrl(); ?>" id="signin_google">
                 <div class="ui google plus button">
                     <i class="google plus icon"></i>
                     Google Plus
+                </div>
+            </a>
+            -->
+
+            <a href="<?php echo $provider->authorizationUrl(); ?>" id="signin_github">
+                <div class="ui github button">
+                    <i class="github icon"></i>
+                    Github
                 </div>
             </a>
 

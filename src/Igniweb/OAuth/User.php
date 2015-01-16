@@ -2,46 +2,50 @@
 
 class User {
 
-    public $uid;
+    /**
+     * User login
+     * @var string
+     */
+    public $login;
 
-    public $name;
-
-    public $firstName;
-
-    public $lastName;
-
+    /**
+     * User email address
+     * @var string
+     */
     public $email;
 
-    public $imageUrl;
+    /**
+     * User name
+     * @var string
+     */
+    public $name;
 
     /**
-     * OAuth domain User instance constructor
-     * @param array $data
+     * User URL
+     * @var string
+     */
+    public $url;
+
+    /**
+     * User avatar URL
+     * @var string
+     */
+    public $avatar;
+
+    /**
+     * Class instance constructor
+     * @param array $options
      * @return void
      */
-    public function __construct(array $data = [])
-    {
-        foreach ($data as $key => $val)
+    public function __construct(array $options)
+    {   // Whitelist public properties
+        foreach ($options as $option => $value)
         {
-            $property = $this->studly($key);
-
-            if (property_exists($this, $property))
+            if (property_exists($this, $option))
             {
-                $this->$property = $val;
+                $this->{$option} = $value;
             }
         }
-    }
-
-    /**
-     * Convert a value to studly caps case
-     * @param string $str
-     * @return string
-     */
-    private function studly($str)
-    {
-        $str = ucwords(str_replace('_', ' ', $str));
-
-        return str_replace(' ', '', $str);
     }
 
 }

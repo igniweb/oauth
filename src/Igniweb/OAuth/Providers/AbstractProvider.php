@@ -1,50 +1,47 @@
 <?php namespace Igniweb\OAuth\Providers;
 
-use BadMethodCallException;
-use Guzzle\Http\Exception\BadResponseException;
-use Guzzle\Service\Client;
-use Igniweb\OAuth\Exceptions\OAuthException;
-use Igniweb\OAuth\Tokens\AccessToken;
-use Igniweb\OAuth\User;
+use GuzzleHttp\Client;
+use Igniweb\OAuth\Exceptions\InvalidTokenException;
+use Igniweb\OAuth\Exceptions\UnknownUserException;
 
 abstract class AbstractProvider implements ProviderInterface {
-
+    
     /**
-     * OAuth client ID
+     * Provider client ID
      * @var string
      */
     public $clientId;
 
     /**
-     * OAuth client secret
+     * Provider client secret
      * @var string
      */
     public $clientSecret;
 
     /**
-     * OAuth application redirect URI
+     * Provider configured redirect URL
      * @var string
      */
-    public $redirectUri;
+    public $redirectUrl;
 
     /**
-     * OAuth application current state
-     * @var string
-     */
-    public $state;
-
-    /**
-     * OAuth queried scopes
+     * Queried scopes
      * @var array
      */
     public $scopes;
 
     /**
-     * Class constructor
+     * HTTP client object
+     * @var \GuzzleHttp\Client
+     */
+    protected $client;
+
+    /**
+     * Class instance constructor
      * @param array $options
      * @return void
      */
-    public function __construct(array $options = [])
+    public function __construct(array $options)
     {   // Whitelist public properties
         foreach ($options as $option => $value)
         {
@@ -53,144 +50,75 @@ abstract class AbstractProvider implements ProviderInterface {
                 $this->{$option} = $value;
             }
         }
+
+        // Setup HTTP client (dependencies to Guzzle)
+        $this->client = new Client;
     }
 
     /**
-     * Return provider authorization base URL
+     * Return provider authorization URL
      * @return string
      */
-    abstract public function urlAuthorize();
+    abstract public function authorizationUrl();
 
     /**
      * Return provider access token URL
      * @return string
      */
-    abstract public function urlAccessToken();
+    abstract protected function accessTokenUrl();
 
     /**
-     * Return provider user details oauth API URL
-     * @param AccessToken $token
-     * @return string
+     * Return user object associated with the token
+     * @param string
+     * @return \Igniweb\OAuth\User|false
      */
-    abstract public function urlUserDetails(AccessToken $token);
+    abstract protected function userByToken($token);
 
     /**
-     * Return an OAuth\User object
-     * @param object $response
-     * @return User
+     * Return authenticated User instance
+     * @param string $code
+     * @throws \Igniweb\OAuth\Exceptions\InvalidTokenException
+     * @throws \Igniweb\OAuth\Exceptions\UnknownUserException
+     * @return \Igniweb\OAuth\User
      */
-    abstract public function userDetails($response);
-
-    /**
-     * Return provider authorization URL
-     * @param array $options
-     * @return string
-     */
-    public function getAuthorizationUrl($options = [])
+    public function user($code)
     {
-        $this->state = isset($options['state']) ? $options['state'] : md5(uniqid(rand(), true));
+        $token = $this->accessToken($code);
+        if (empty($token))
+        {
+            throw new InvalidTokenException('No token associated with code "' . $code . '"');
+        }
 
-        $params = [
-            'client_id'     => $this->clientId,
-            'redirect_uri'  => $this->redirectUri,
-            'state'         => $this->state,
-            'scope'         => is_array($this->scopes) ? implode(',', $this->scopes) : $this->scopes,
-            'response_type' => isset($options['response_type']) ? $options['response_type'] : 'code',
-        ];
+        $user = $this->userByToken($token);
+        if (empty($user))
+        {
+            throw new UnknownUserException('Unknow user associated with token "' . $token . '"');   
+        }
 
-        return $this->urlAuthorize() . '?' . http_build_query($params);
+        return $user;
     }
 
     /**
-     * Return provider authorization token
-     * @param array $options
-     * @throws BadMethodCallException
-     * @throws OAuthException
-     * @return AccessToken
+     * Return access token associated with the code
+     * @param string $code
+     * @return string|false
      */
-    public function getAccessToken($options = [])
+    protected function accessToken($code)
     {
-        if ( ! isset($options['code']))
-        {
-            throw new BadMethodCallException('Missing authorization code');
-        }
+        $response = $this->client->post($this->accessTokenUrl(), [
+            'body' => [
+                'code'          => $code,
+                'client_id'     => $this->clientId,
+                'client_secret' => $this->clientSecret,
+            ],
+            'headers' => [
+                'Accept' => 'application/json',
+            ],
+        ]);
 
-        $params = [
-            'client_id'     => $this->clientId,
-            'client_secret' => $this->clientSecret,
-            'redirect_uri'  => $this->redirectUri,
-        ];
+        $accessToken = $response->json();
 
-        $response = $this->postParams(array_merge($params, $options));
-        $result = json_decode($response, true);
-
-        if (isset($result['error']) and ! empty($result['error']))
-        {
-            throw new OAuthException($result);
-        }
-
-        return new AccessToken($result);
+        return ! empty($accessToken['access_token']) ? $accessToken['access_token'] : false;
     }
 
-    /**
-     * Return an array containing user information
-     * @param AccessToken $token
-     * @return array
-     */
-    public function getUser(AccessToken $token)
-    {
-        $response = json_decode($this->fetchUserDetails($token));
-
-        return $this->userDetails($response);
-    }
-
-    /**
-     * POST parameters using Guzzle Client and return either error message OR body response
-     * @param array $params
-     * @return string
-     */
-    protected function postParams(array $params)
-    {
-        try
-        {
-            $client = new Client;
-            $client->setBaseUrl($this->urlAccessToken());
-
-            $request = $client->post(null, null, $params)->send();
-            $response = $request->getBody();
-        }
-        catch (BadResponseException $e)
-        {
-            $response = explode("\n", $e->getResponse());
-            $response = end($response);
-        }
-
-        return $response;
-    }
-
-    /**
-     * Fetch user details of the the given on the OAuth provider API
-     * @param AccessToken $token
-     * @throws OAuthException
-     * @return string
-     */
-    protected function fetchUserDetails(AccessToken $token)
-    {
-        try
-        {
-            $client = new Client;
-            $client->setBaseUrl($this->urlUserDetails($token));
-
-            $request = $client->get()->send();
-            $response = $request->getBody();
-        }
-        catch (BadResponseException $e)
-        {
-            $response = explode("\n", $e->getResponse());
-            throw new OAuthException(end($response));
-        }
-
-        return $response;
-    }
-    
 }
