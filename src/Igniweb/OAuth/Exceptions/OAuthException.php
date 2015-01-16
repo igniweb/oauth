@@ -12,9 +12,10 @@ class OAuthException extends Exception {
 
     /**
      * Exception instance constructor
+     * @param array $result
      * @return void
      */
-    public function __construct($result)
+    public function __construct(array $result = [])
     {
         $this->result = $result;
 
@@ -65,7 +66,7 @@ class OAuthException extends Exception {
 
         if ($this->code !== 0)
         {
-            $string .= ' [error #' . $this->code . ']: ';
+            $string .= ' [error #' . $this->code . '] - ';
         }
 
         return $string . $this->message;

@@ -41,9 +41,10 @@ abstract class AbstractProvider implements ProviderInterface {
 
     /**
      * Class constructor
+     * @param array $options
      * @return void
      */
-    public function __construct($options = [])
+    public function __construct(array $options = [])
     {   // Whitelist public properties
         foreach ($options as $option => $value)
         {
@@ -103,7 +104,9 @@ abstract class AbstractProvider implements ProviderInterface {
     /**
      * Return provider authorization token
      * @param array $options
-     * @return string
+     * @throws BadMethodCallException
+     * @throws OAuthException
+     * @return AccessToken
      */
     public function getAccessToken($options = [])
     {
@@ -130,7 +133,7 @@ abstract class AbstractProvider implements ProviderInterface {
     }
 
     /**
-     * Return an array containing user informations
+     * Return an array containing user information
      * @param AccessToken $token
      * @return array
      */
@@ -167,6 +170,8 @@ abstract class AbstractProvider implements ProviderInterface {
 
     /**
      * Fetch user details of the the given on the OAuth provider API
+     * @param AccessToken $token
+     * @throws OAuthException
      * @return string
      */
     protected function fetchUserDetails(AccessToken $token)

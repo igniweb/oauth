@@ -39,7 +39,7 @@ interface ProviderInterface {
     public function getAccessToken($options = []);
 
     /**
-     * Return an array containing user informations
+     * Return an array containing user information
      * @param AccessToken $token
      * @return array
      */

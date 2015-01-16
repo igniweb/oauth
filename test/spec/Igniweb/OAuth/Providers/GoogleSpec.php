@@ -1,5 +1,6 @@
 <?php namespace spec\Igniweb\OAuth\Providers;
 
+use Igniweb\OAuth\Tokens\AccessToken;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 
@@ -18,6 +19,18 @@ class GoogleSpec extends ObjectBehavior {
     public function it_provides_valid_authorize_url()
     {
         $this->urlAuthorize()->shouldBeValidUrl();
+    }
+
+    public function it_provides_valid_access_token_url()
+    {
+        $this->urlAccessToken()->shouldBeValidUrl();
+    }
+
+    public function it_provides_valid_user_details_url()
+    {
+        $token = new AccessToken(['access_token' => 'token']);
+
+        $this->urlUserDetails($token)->shouldBeValidUrl();
     }
 
     public function getMatchers()

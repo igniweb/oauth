@@ -16,9 +16,10 @@ class User {
 
     /**
      * OAuth domain User instance constructor
+     * @param array $data
      * @return void
      */
-    public function __construct(array $data)
+    public function __construct(array $data = [])
     {
         foreach ($data as $key => $val)
         {

@@ -4,6 +4,6 @@ Feature: Signin via oauth2 (Google)
     I need to have an authorized google account
 
     Scenario: Click on signin button
-        Given I am on "/signin.php"
+        Given I am on "/oauth.php"
         When I follow "signin_google"
         Then I should see "Sign in - Google Accounts"

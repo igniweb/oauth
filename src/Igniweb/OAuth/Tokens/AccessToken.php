@@ -24,9 +24,11 @@ class AccessToken {
 
     /**
      * AccessToken constructor
+     * @param array $options
+     * @throws InvalidArgumentException
      * @return void
      */
-    public function __construct(array $options)
+    public function __construct(array $options = [])
     {
         if ( ! isset($options['access_token']))
         {
