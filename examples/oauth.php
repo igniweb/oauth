@@ -2,18 +2,20 @@
 
 require '../vendor/autoload.php';
 
-$redirectUrl = 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+$redirectUrl = 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['SCRIPT_NAME'];
+
+$config = require __DIR__ . '/config.php';
 
 $google = new Igniweb\OAuth\Providers\Google([
-    'clientId'     => '644622676486-urh79l905tblnoq3pndlbcr66stppsme.apps.googleusercontent.com',
-    'clientSecret' => 'G96xtZ7nxXnI6i55pcJ_2YKx',
+    'clientId'     => $config['google']['client_id'],
+    'clientSecret' => $config['google']['client_secret'],
     'redirectUrl'  => $redirectUrl,
     'scopes'       => ['profile', 'email'],
 ]);
 
 $github = new Igniweb\OAuth\Providers\Github([
-    'clientId'     => 'dd860cd3a216bedcae6f',
-    'clientSecret' => 'e201dade2773e9911c2ab3b06a4c6bd932f7b7c5',
+    'clientId'     => $config['github']['client_id'],
+    'clientSecret' => $config['github']['client_secret'],
     'redirectUrl'  => $redirectUrl,
     'scopes'       => ['user:email'],
 ]);

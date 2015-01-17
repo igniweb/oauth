@@ -6,4 +6,9 @@ Feature: Signin via oauth2
     Scenario: Click on Google signin button
         Given I am on "/oauth.php"
         When I follow "signin_google"
-        Then I should see "Sign in - Google Accounts"
+        Then I should see "Google"
+
+    Scenario: Click on Github signin button
+        Given I am on "/oauth.php"
+        When I follow "signin_github"
+        Then I should see "Github"

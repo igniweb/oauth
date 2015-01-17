@@ -33,7 +33,7 @@ class Google extends AbstractProvider implements ProviderInterface {
                 'client_id'     => $this->clientId,
                 'client_secret' => $this->clientSecret,
                 'redirect_uri'  => $this->redirectUrl,
-                'grant_type'    => 'AuthorizationCode',
+                'grant_type'    => 'authorization_code',
             ],
         ]);
 
@@ -53,13 +53,13 @@ class Google extends AbstractProvider implements ProviderInterface {
      */
     protected function userByToken($token)
     {
-        $response = $this->client->get('https://www.googleapis.com/plus/v1/people/me', [
-            'body' => [
-                'fields'       => 'id,name(familyName,givenName),displayName,emails/value,image/url',
-                'alt'          => 'json',
-                'access_token' => $token,
-            ],
+        $url = 'https://www.googleapis.com/plus/v1/people/me?' . http_build_query([
+            // https://developers.google.com/+/api/latest/people?hl=fr
+            'fields'       => 'id,url,name(familyName,givenName),displayName,emails/value,image/url',
+            'alt'          => 'json',
+            'access_token' => $token,
         ]);
+        $response = $this->client->get($url);
 
         $user = $response->json();
         if (empty($user) or ! empty($user['error']))
@@ -69,10 +69,10 @@ class Google extends AbstractProvider implements ProviderInterface {
 
         return new User([
             'login'  => null,
-            'email'  => ! empty($user['emails'][0]->value) ? $user['emails'][0]->value : null,
+            'email'  => ! empty($user['emails'][0]['value']) ? $user['emails'][0]['value'] : null,
             'name'   => $user['displayName'],
-            'url'    => null,
-            'avatar' => ! empty($user['image']->url) ? $user['image']->url : null,
+            'url'    => $user['url'],
+            'avatar' => ! empty($user['image']['url']) ? $user['image']['url'] : null,
         ]);
     }
 
