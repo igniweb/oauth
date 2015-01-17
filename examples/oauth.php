@@ -2,33 +2,34 @@
 
 require '../vendor/autoload.php';
 
-$redirectUri = $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+$redirectUrl = 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
 
-/*
-$provider = new Igniweb\OAuth\Providers\Google([
+$google = new Igniweb\OAuth\Providers\Google([
     'clientId'     => '644622676486-urh79l905tblnoq3pndlbcr66stppsme.apps.googleusercontent.com',
     'clientSecret' => 'G96xtZ7nxXnI6i55pcJ_2YKx',
-    'redirectUri'  => $redirectUri,
-    'scopes'       => ['email'],
+    'redirectUrl'  => $redirectUrl,
+    'scopes'       => ['profile', 'email'],
 ]);
-*/
 
-$provider = new Igniweb\OAuth\Providers\Github([
+$github = new Igniweb\OAuth\Providers\Github([
     'clientId'     => 'dd860cd3a216bedcae6f',
     'clientSecret' => 'e201dade2773e9911c2ab3b06a4c6bd932f7b7c5',
-    'redirectUri'  => $redirectUri,
-    'scopes'       => ['user', 'email'],
+    'redirectUrl'  => $redirectUrl,
+    'scopes'       => ['user:email'],
 ]);
 
 if (isset($_GET['code']))
 {   
     try
     {
-        $user = $provider->user($_GET['code']);
+        // Github: d1f01d6c0114b4ad708f
+        // Google: 4/wPlICgLXErQCGORuRxAg0iGl1tbcoxTWomjoicAVh7g.4vJWv1f6HxweoiIBeO6P2m_IhY7qlQI
+        $provider = (strlen($_GET['code']) == 20) ? 'github' : 'google';
+        $user = $$provider->user($_GET['code']);
     }
     catch (Exception $e)
     {
-        die('No user');
+        die($e->getMessage());
     }
 }
 ?>
@@ -55,16 +56,14 @@ if (isset($_GET['code']))
 
         <?php if ( ! isset($user)) : ?>
 
-            <!--
-            <a href="<?php echo $provider->authorizationUrl(); ?>" id="signin_google">
+            <a href="<?php echo $google->authorizationUrl(); ?>" id="signin_google">
                 <div class="ui google plus button">
                     <i class="google plus icon"></i>
                     Google Plus
                 </div>
             </a>
-            -->
 
-            <a href="<?php echo $provider->authorizationUrl(); ?>" id="signin_github">
+            <a href="<?php echo $github->authorizationUrl(); ?>" id="signin_github" style="display: block; margin-top: 1em;">
                 <div class="ui github button">
                     <i class="github icon"></i>
                     Github

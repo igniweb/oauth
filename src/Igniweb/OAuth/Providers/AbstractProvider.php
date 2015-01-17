@@ -62,14 +62,15 @@ abstract class AbstractProvider implements ProviderInterface {
     abstract public function authorizationUrl();
 
     /**
-     * Return provider access token URL
-     * @return string
+     * Return access token associated with the code
+     * @param string $code
+     * @return string|false
      */
-    abstract protected function accessTokenUrl();
+    abstract protected function accessToken($code);
 
     /**
      * Return user object associated with the token
-     * @param string
+     * @param string $token
      * @return \Igniweb\OAuth\User|false
      */
     abstract protected function userByToken($token);
@@ -96,29 +97,6 @@ abstract class AbstractProvider implements ProviderInterface {
         }
 
         return $user;
-    }
-
-    /**
-     * Return access token associated with the code
-     * @param string $code
-     * @return string|false
-     */
-    protected function accessToken($code)
-    {
-        $response = $this->client->post($this->accessTokenUrl(), [
-            'body' => [
-                'code'          => $code,
-                'client_id'     => $this->clientId,
-                'client_secret' => $this->clientSecret,
-            ],
-            'headers' => [
-                'Accept' => 'application/json',
-            ],
-        ]);
-
-        $accessToken = $response->json();
-
-        return ! empty($accessToken['access_token']) ? $accessToken['access_token'] : false;
     }
 
 }

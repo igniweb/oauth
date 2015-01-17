@@ -14,22 +14,40 @@ class Github extends AbstractProvider implements ProviderInterface {
         
         return $url . http_build_query([
             'client_id' => $this->clientId,
-            'scope'     => implode(':', $this->scopes),
+            'scope'     => implode(',', $this->scopes),
         ]);
     }
 
     /**
-     * Return provider access token URL
-     * @return string
+     * Return access token associated with the code
+     * @param string $code
+     * @return string|false
      */
-    protected function accessTokenUrl()
+    protected function accessToken($code)
     {
-        return 'https://github.com/login/oauth/access_token';
+        $response = $this->client->post('https://github.com/login/oauth/access_token', [
+            'body' => [
+                'code'          => $code,
+                'client_id'     => $this->clientId,
+                'client_secret' => $this->clientSecret,
+            ],
+            'headers' => [
+                'Accept' => 'application/json',
+            ],
+        ]);
+
+        $accessToken = $response->json();
+        if (empty($accessToken['access_token']))
+        {
+            return false;
+        }
+
+        return $accessToken['access_token'];
     }
 
     /**
      * Return user object associated with the token
-     * @param string
+     * @param string $token
      * @return \Igniweb\OAuth\User|false
      */
     protected function userByToken($token)
@@ -42,7 +60,7 @@ class Github extends AbstractProvider implements ProviderInterface {
         if (empty($user) or ! empty($user['error']))
         {
             return false;
-        }return $user;
+        }
 
         return new User([
             'login'  => $user['login'],
