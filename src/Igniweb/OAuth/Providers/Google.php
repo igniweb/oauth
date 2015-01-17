@@ -53,9 +53,13 @@ class Google extends AbstractProvider implements ProviderInterface {
      */
     protected function userByToken($token)
     {
-        $url = 'https://www.googleapis.com/plus/v1/people/me?fields=id%2Cname(familyName%2CgivenName)%2CdisplayName%2Cemails%2Fvalue%2Cimage%2Furl&alt=json&access_token=' . $token;
-
-        $response = $this->client->get($url);
+        $response = $this->client->get('https://www.googleapis.com/plus/v1/people/me', [
+            'body' => [
+                'fields'       => 'id,name(familyName,givenName),displayName,emails/value,image/url',
+                'alt'          => 'json',
+                'access_token' => $token,
+            ],
+        ]);
 
         $user = $response->json();
         if (empty($user) or ! empty($user['error']))
