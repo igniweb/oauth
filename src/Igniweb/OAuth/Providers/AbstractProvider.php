@@ -1,6 +1,6 @@
 <?php namespace Igniweb\OAuth\Providers;
 
-use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
 use Igniweb\OAuth\Exceptions\InvalidTokenException;
 use Igniweb\OAuth\Exceptions\UnknownUserException;
 
@@ -38,11 +38,15 @@ abstract class AbstractProvider implements ProviderInterface {
 
     /**
      * Class instance constructor
+     * @param \GuzzleHttp\ClientInterface $client
      * @param array $options
      * @return void
      */
-    public function __construct(array $options)
-    {   // Whitelist public properties
+    public function __construct(ClientInterface $client, array $options)
+    {   
+        $this->client = $client;
+
+        // Whitelist public properties
         foreach ($options as $option => $value)
         {
             if (property_exists($this, $option))
@@ -50,9 +54,6 @@ abstract class AbstractProvider implements ProviderInterface {
                 $this->{$option} = $value;
             }
         }
-
-        // Setup HTTP client (dependencies to Guzzle)
-        $this->client = new Client;
     }
 
     /**

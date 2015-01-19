@@ -5,15 +5,16 @@ require '../vendor/autoload.php';
 $redirectUrl = 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['SCRIPT_NAME'];
 
 $config = require __DIR__ . '/config.php';
+$client = new GuzzleHttp\Client;
 
-$google = new Igniweb\OAuth\Providers\Google([
+$google = new Igniweb\OAuth\Providers\Google($client, [
     'clientId'     => $config['google']['client_id'],
     'clientSecret' => $config['google']['client_secret'],
     'redirectUrl'  => $redirectUrl,
     'scopes'       => ['profile', 'email'],
 ]);
 
-$github = new Igniweb\OAuth\Providers\Github([
+$github = new Igniweb\OAuth\Providers\Github($client, [
     'clientId'     => $config['github']['client_id'],
     'clientSecret' => $config['github']['client_secret'],
     'redirectUrl'  => $redirectUrl,

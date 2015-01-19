@@ -23,18 +23,9 @@ class Github extends AbstractProvider implements ProviderInterface {
      * @param string $code
      * @return string|false
      */
-    protected function accessToken($code)
+    public function accessToken($code)
     {
-        $response = $this->client->post('https://github.com/login/oauth/access_token', [
-            'body' => [
-                'code'          => $code,
-                'client_id'     => $this->clientId,
-                'client_secret' => $this->clientSecret,
-            ],
-            'headers' => [
-                'Accept' => 'application/json',
-            ],
-        ]);
+        $response = $this->requestAccessToken($code);
 
         $accessToken = $response->json();
         if (empty($accessToken['access_token']))
@@ -46,15 +37,32 @@ class Github extends AbstractProvider implements ProviderInterface {
     }
 
     /**
+     * POST request for connected account access token
+     * @param string $code
+     * @return \GuzzleHttp\Message\Response
+     */
+    private function requestAccessToken($code)
+    {
+        return $this->client->post('https://github.com/login/oauth/access_token', [
+            'body' => [
+                'code'          => $code,
+                'client_id'     => $this->clientId,
+                'client_secret' => $this->clientSecret,
+            ],
+            'headers' => [
+                'Accept' => 'application/json',
+            ],
+        ]);
+    }
+
+    /**
      * Return user object associated with the token
      * @param string $token
      * @return \Igniweb\OAuth\User|false
      */
-    protected function userByToken($token)
+    public function userByToken($token)
     {
-        $response = $this->client->get('https://api.github.com/user', [
-            'headers' => ['Authorization' => 'token ' . $token],
-        ]);
+        $response = $this->requestUser($token);
 
         $user = $response->json();
         if (empty($user) or ! empty($user['error']))
@@ -68,6 +76,18 @@ class Github extends AbstractProvider implements ProviderInterface {
             'name'   => $user['name'],
             'url'    => $user['html_url'],
             'avatar' => $user['avatar_url'],
+        ]);
+    }
+
+    /**
+     * GET request to return user for associated access token
+     * @param string $token
+     * @return \GuzzleHttp\Message\Response
+     */
+    private function requestUser($token)
+    {
+        return $this->client->get('https://api.github.com/user', [
+            'headers' => ['Authorization' => 'token ' . $token],
         ]);
     }
 
