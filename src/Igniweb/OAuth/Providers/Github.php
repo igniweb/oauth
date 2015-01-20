@@ -23,7 +23,7 @@ class Github extends AbstractProvider implements ProviderInterface {
      * @param string $code
      * @return string|false
      */
-    public function accessToken($code)
+    protected function accessToken($code)
     {
         $response = $this->requestAccessToken($code);
 
@@ -60,7 +60,7 @@ class Github extends AbstractProvider implements ProviderInterface {
      * @param string $token
      * @return \Igniweb\OAuth\User|false
      */
-    public function userByToken($token)
+    protected function userByToken($token)
     {
         $response = $this->requestUser($token);
 

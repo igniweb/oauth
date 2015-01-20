@@ -32,7 +32,7 @@ abstract class AbstractProvider implements ProviderInterface {
 
     /**
      * HTTP client object
-     * @var \GuzzleHttp\Client
+     * @var \GuzzleHttp\ClientInterface
      */
     protected $client;
 

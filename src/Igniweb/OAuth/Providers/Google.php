@@ -27,15 +27,7 @@ class Google extends AbstractProvider implements ProviderInterface {
      */
     protected function accessToken($code)
     {
-        $response = $this->client->post('https://accounts.google.com/o/oauth2/token', [
-            'body' => [
-                'code'          => $code,
-                'client_id'     => $this->clientId,
-                'client_secret' => $this->clientSecret,
-                'redirect_uri'  => $this->redirectUrl,
-                'grant_type'    => 'authorization_code',
-            ],
-        ]);
+        $response = $this->requestAccessToken($code);
 
         $accessToken = $response->json();
         if (empty($accessToken['access_token']) or ! empty($accessToken['error']))
@@ -47,19 +39,31 @@ class Google extends AbstractProvider implements ProviderInterface {
     }
 
     /**
+     * POST request for connected account access token
+     * @param string $code
+     * @return \GuzzleHttp\Message\Response
+     */
+    private function requestAccessToken($code)
+    {
+        return $this->client->post('https://accounts.google.com/o/oauth2/token', [
+            'body' => [
+                'code'          => $code,
+                'client_id'     => $this->clientId,
+                'client_secret' => $this->clientSecret,
+                'redirect_uri'  => $this->redirectUrl,
+                'grant_type'    => 'authorization_code',
+            ],
+        ]);
+    }
+
+    /**
      * Return user object associated with the token
      * @param string $token
      * @return \Igniweb\OAuth\User|false
      */
     protected function userByToken($token)
     {
-        $url = 'https://www.googleapis.com/plus/v1/people/me?' . http_build_query([
-            // https://developers.google.com/+/api/latest/people?hl=fr
-            'fields'       => 'id,url,name(familyName,givenName),displayName,emails/value,image/url',
-            'alt'          => 'json',
-            'access_token' => $token,
-        ]);
-        $response = $this->client->get($url);
+        $response = $this->requestUser($token);
 
         $user = $response->json();
         if (empty($user) or ! empty($user['error']))
@@ -74,6 +78,23 @@ class Google extends AbstractProvider implements ProviderInterface {
             'url'    => $user['url'],
             'avatar' => ! empty($user['image']['url']) ? $user['image']['url'] : null,
         ]);
+    }
+
+    /**
+     * GET request to return user for associated access token
+     * @param string $token
+     * @return \GuzzleHttp\Message\Response
+     */
+    private function requestUser($token)
+    {
+        $url = 'https://www.googleapis.com/plus/v1/people/me?' . http_build_query([
+            // https://developers.google.com/+/api/latest/people?hl=fr
+            'fields'       => 'id,url,name(familyName,givenName),displayName,emails/value,image/url',
+            'alt'          => 'json',
+            'access_token' => $token,
+        ]);
+
+        return $this->client->get($url);
     }
 
 }

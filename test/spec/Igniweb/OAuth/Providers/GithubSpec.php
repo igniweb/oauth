@@ -2,7 +2,19 @@
 
 require_once __DIR__ . '/ProviderBehavior.php';
 
+use GuzzleHttp\Client;
+
 class GithubSpec extends ProviderBehavior {
+
+    public function stubAccessTokenRequest(Client $client)
+    {
+        return $client;
+    }
+
+    public function stubUserRequest(Client $client)
+    {
+        return $client;
+    }
 
     public function it_is_initializable()
     {

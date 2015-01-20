@@ -3,43 +3,38 @@
 require_once __DIR__ . '/../../MatchersTrait.php';
 
 use GuzzleHttp\Client;
-use GuzzleHttp\Message\Response;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
 use spec\Igniweb\MatchersTrait;
 
-class ProviderBehavior extends ObjectBehavior {
+abstract class ProviderBehavior extends ObjectBehavior {
 
     use MatchersTrait;
 
-    protected $code = 'code';
+    const CACHE_TTL = 60; // In minutes
 
-    protected $token = 'token';
+    abstract public function stubAccessTokenRequest(Client $client);
 
-    protected $clientId = 'id';
+    abstract public function stubUserRequest(Client $client);
 
-    protected $clientSecret = 'secret';
-
-    protected $redirectUrl = 'redirect';
-
-    protected $scopes = ['foo', 'bar'];
-
-    public function let(Client $client, Response $response)
-    {
-        $client = $this->stubClient($client, $response);   
-
-        $this->beConstructedWith($client, [
-            'clientId'     => $this->clientId,
-            'clientSecret' => $this->clientSecret,
-            'redirectUrl'  => $this->redirectUrl,
-            'scopes'       => $this->scopes,
-        ]);
-    }
-
-    private function stubClient($client, $response)
+    public function let(Client $client)
     {   // Remove SSL check
         $client->setDefaultOption('verify', false);
 
+        $options = [
+            'clientId'     => 'id',
+            'clientSecret' => 'secret',
+            'redirectUrl'  => 'redirect',
+            'scopes'       => ['scope_1', 'scope_2'],
+        ];
+
+        $this->beConstructedWith($client, $options);
+    }
+
+    private function stubClient($client, $response)
+    {   
+/*
+        $client = $this->stubGithub($client, $response);
         $client->post('https://github.com/login/oauth/access_token', [
             'body' => [
                 'code'          => $this->code,
@@ -54,7 +49,7 @@ class ProviderBehavior extends ObjectBehavior {
         $client->get('https://api.github.com/user', [
             'headers' => ['Authorization' => 'token ' . $this->token],
         ])->willReturn($response);
-
+*/
         return $client;
     }
 
@@ -68,12 +63,48 @@ class ProviderBehavior extends ObjectBehavior {
         $this->authorizationUrl()->shouldBeValidUrl();
     }
 
-    public function it_get_an_access_token_and_fetch_a_user()
+    public function it_get_an_access_token_and_fetch_a_user(Client $client)
     {
-        $this->accessToken($this->code)->shouldBeCalled();
-        $this->userByToken($this->token)->shouldBeCalled();
+        $code = 'code';
 
-        $this->user($this->code);
+        // $client = $this->stubAccessTokenRequest($client);
+        // $client = $this->stubUserRequest($client);
+
+        $this->accessToken($code)->shouldBeCalled();
+        $this->userByToken('token')->shouldBeCalled();
+
+        $this->user($code);
     }
-    
+
+/*
+    protected function cache($key, $data = null)
+    {
+        if (empty($data))
+        {   // Getter
+            return $this->getCache($key);
+        }
+
+        // Setter
+        return $this->setCache($key, $data);
+    }
+
+    private function setCache($key, $data)
+    {
+        $cache = __DIR__ . '/cache/' . $key;
+
+        return file_put_contents($cache, $data);
+    }
+
+    private function getCache($key)
+    {
+        $cache = __DIR__ . '/cache/' . $key;
+        if (file_exists($cache) and ((time() - filemtime($cache)) < (static::CACHE_TTL * 60)))
+        {
+            return file_get_contents($cache);
+        }
+
+        return false;
+    }
+*/
+
 }
