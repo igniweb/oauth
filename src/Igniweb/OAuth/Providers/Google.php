@@ -2,7 +2,7 @@
 
 use Igniweb\OAuth\User;
 
-class Google extends AbstractProvider implements ProviderInterface {
+class Google extends AbstractProvider {
     
     /**
      * Return provider authorization URL

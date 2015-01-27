@@ -2,7 +2,7 @@
 
 use Igniweb\OAuth\User;
 
-class Instagram extends AbstractProvider implements ProviderInterface {
+class Instagram extends AbstractProvider {
     
     /**
      * Raw user object returned with access token

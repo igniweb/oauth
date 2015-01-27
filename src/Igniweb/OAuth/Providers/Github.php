@@ -2,7 +2,7 @@
 
 use Igniweb\OAuth\User;
 
-class Github extends AbstractProvider implements ProviderInterface {
+class Github extends AbstractProvider {
     
     /**
      * Return provider authorization URL
