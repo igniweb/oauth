@@ -36,7 +36,7 @@ if (isset($_GET['code']))
         // Google: 4/wPlICgLXErQCGORuRxAg0iGl1tbcoxTWomjoicAVh7g.4vJWv1f6HxweoiIBeO6P2m_IhY7qlQI
         // Instagram: 107154554124434f9073b2740f421591
         $codeLen = strlen($_GET['code']);
-        $provider = ($codeLen == 20) ? 'github' : ($codeLen == 32) ? 'instagram' : 'google';
+        $provider = ($codeLen == 20) ? 'github' : (($codeLen == 32) ? 'instagram' : 'google');
         $user = $$provider->user($_GET['code']);
     }
     catch (Exception $e)
