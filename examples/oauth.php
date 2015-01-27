@@ -21,13 +21,22 @@ $github = new Igniweb\OAuth\Providers\Github($client, [
     'scopes'       => ['user:email'],
 ]);
 
+$instagram = new Igniweb\OAuth\Providers\Instagram($client, [
+    'clientId'     => $config['instagram']['client_id'],
+    'clientSecret' => $config['instagram']['client_secret'],
+    'redirectUrl'  => $redirectUrl,
+    'scopes'       => ['basic'],
+]);
+
 if (isset($_GET['code']))
-{   
+{
     try
     {
         // Github: d1f01d6c0114b4ad708f
         // Google: 4/wPlICgLXErQCGORuRxAg0iGl1tbcoxTWomjoicAVh7g.4vJWv1f6HxweoiIBeO6P2m_IhY7qlQI
-        $provider = (strlen($_GET['code']) == 20) ? 'github' : 'google';
+        // Instagram: 107154554124434f9073b2740f421591
+        $codeLen = strlen($_GET['code']);
+        $provider = ($codeLen == 20) ? 'github' : ($codeLen == 32) ? 'instagram' : 'google';
         $user = $$provider->user($_GET['code']);
     }
     catch (Exception $e)
@@ -62,7 +71,7 @@ if (isset($_GET['code']))
             <a href="<?php echo $google->authorizationUrl(); ?>" id="signin_google">
                 <div class="ui google plus button">
                     <i class="google plus icon"></i>
-                    Google Plus
+                    Google
                 </div>
             </a>
 
@@ -70,6 +79,13 @@ if (isset($_GET['code']))
                 <div class="ui github button">
                     <i class="github icon"></i>
                     Github
+                </div>
+            </a>
+
+            <a href="<?php echo $instagram->authorizationUrl(); ?>" id="signin_instagram" style="display: block; margin-top: 1em;">
+                <div class="ui instagram button">
+                    <i class="instagram icon"></i>
+                    Instagram
                 </div>
             </a>
 

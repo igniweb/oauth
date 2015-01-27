@@ -2,19 +2,27 @@
 
 use Igniweb\OAuth\User;
 
-class Github extends AbstractProvider implements ProviderInterface {
+class Instagram extends AbstractProvider implements ProviderInterface {
     
+    /**
+     * Raw user object returned with access token
+     * @var array
+     */
+    private $user;
+
     /**
      * Return provider authorization URL
      * @return string
      */
     public function authorizationUrl()
     {
-        $url = 'https://github.com/login/oauth/authorize?';
+        $url = 'https://api.instagram.com/oauth/authorize/?';
         
         return $url . http_build_query([
-            'client_id' => $this->clientId,
-            'scope'     => implode(',', $this->scopes),
+            'client_id'     => $this->clientId,
+            'redirect_uri'  => $this->redirectUrl,
+            'scope'         => implode(' ', $this->scopes),
+            'response_type' => 'code',
         ]);
     }
 
@@ -33,6 +41,8 @@ class Github extends AbstractProvider implements ProviderInterface {
             return false;
         }
 
+        $this->user = $accessToken['user'];
+
         return $accessToken['access_token'];
     }
 
@@ -43,14 +53,13 @@ class Github extends AbstractProvider implements ProviderInterface {
      */
     private function requestAccessToken($code)
     {
-        return $this->client->post('https://github.com/login/oauth/access_token', [
+        return $this->client->post('https://api.instagram.com/oauth/access_token', [
             'body' => [
                 'code'          => $code,
                 'client_id'     => $this->clientId,
                 'client_secret' => $this->clientSecret,
-            ],
-            'headers' => [
-                'Accept' => 'application/json',
+                'redirect_uri'  => $this->redirectUrl,
+                'grant_type'    => 'authorization_code',
             ],
         ]);
     }
@@ -62,33 +71,18 @@ class Github extends AbstractProvider implements ProviderInterface {
      */
     protected function userByToken($token)
     {
-        $response = $this->requestUser($token);
-
-        $user = $response->json();
-        if (empty($user) or ! empty($user['error']))
+        if (empty($this->user))
         {
             return false;
         }
 
         return new User([
-            'provider' => 'github',
-            'login'    => $user['login'],
-            'email'    => $user['email'],
-            'name'     => $user['name'],
-            'url'      => $user['html_url'],
-            'avatar'   => $user['avatar_url'],
-        ]);
-    }
-
-    /**
-     * GET request to return user for associated access token
-     * @param string $token
-     * @return \GuzzleHttp\Message\Response
-     */
-    private function requestUser($token)
-    {
-        return $this->client->get('https://api.github.com/user', [
-            'headers' => ['Authorization' => 'token ' . $token],
+            'provider' => 'instagram',
+            'login'    => $this->user['username'],
+            'email'    => null,
+            'name'     => $this->user['full_name'],
+            'url'      => $this->user['website'],
+            'avatar'   => $this->user['profile_picture'],
         ]);
     }
 

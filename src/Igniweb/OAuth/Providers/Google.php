@@ -72,11 +72,12 @@ class Google extends AbstractProvider implements ProviderInterface {
         }
 
         return new User([
-            'login'  => null,
-            'email'  => ! empty($user['emails'][0]['value']) ? $user['emails'][0]['value'] : null,
-            'name'   => $user['displayName'],
-            'url'    => $user['url'],
-            'avatar' => ! empty($user['image']['url']) ? $user['image']['url'] : null,
+            'provider' => 'google',
+            'login'    => null,
+            'email'    => ! empty($user['emails'][0]['value']) ? $user['emails'][0]['value'] : null,
+            'name'     => $user['displayName'],
+            'url'      => $user['url'],
+            'avatar'   => ! empty($user['image']['url']) ? $user['image']['url'] : null,
         ]);
     }
 

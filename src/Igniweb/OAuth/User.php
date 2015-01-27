@@ -3,6 +3,12 @@
 class User {
 
     /**
+     * OAuth provider
+     * @var string
+     */
+    public $provider;
+
+    /**
      * User login
      * @var string
      */
