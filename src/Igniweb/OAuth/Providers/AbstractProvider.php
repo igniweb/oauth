@@ -63,41 +63,60 @@ abstract class AbstractProvider implements ProviderInterface {
     abstract public function authorizationUrl();
 
     /**
-     * Return access token associated with the code
+     * Return access token associated with code
      * @param string $code
-     * @return string|false
+     * @throws \Igniweb\OAuth\Exceptions\InvalidTokenException
+     * @return string
      */
-    abstract protected function accessToken($code);
+    public function accessToken($code)
+    {
+        $request = $this->requestAccessToken($code);
+
+        $response = $request->json();
+        if (empty($response['access_token']))
+        {
+            throw new InvalidTokenException('Invalid token matching "' . $code . '"');
+        }
+
+        return $response['access_token'];
+    }
 
     /**
-     * Return user object associated with the token
+     * POST request for connected account access token
+     * @param string $code
+     * @return \GuzzleHttp\Message\Response
+     */
+    abstract protected function requestAccessToken($token);
+
+    /**
+     * Return user array associated with the token
      * @param string $token
-     * @return \Igniweb\OAuth\User|false
+     * @return array|false
      */
     abstract protected function userByToken($token);
 
     /**
+     * Map object to fit \Igniweb\OAuth\User object
+     * @param string $token
+     * @return \Igniweb\OAuth\User|false
+     */
+    abstract protected function mapUser(array $user);
+
+    /**
      * Return authenticated User instance
-     * @param string $code
-     * @throws \Igniweb\OAuth\Exceptions\InvalidTokenException
+     * @param string $token
      * @throws \Igniweb\OAuth\Exceptions\UnknownUserException
      * @return \Igniweb\OAuth\User
      */
-    public function user($code)
+    public function user($token)
     {
-        $token = $this->accessToken($code);
-        if (empty($token))
-        {
-            throw new InvalidTokenException('No token associated with code "' . $code . '"');
-        }
-
         $user = $this->userByToken($token);
         if (empty($user))
         {
             throw new UnknownUserException('Unknow user associated with token "' . $token . '"');   
         }
 
-        return $user;
+        return $this->mapUser($user);
     }
 
 }

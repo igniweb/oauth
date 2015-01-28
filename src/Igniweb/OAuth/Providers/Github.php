@@ -19,29 +19,11 @@ class Github extends AbstractProvider {
     }
 
     /**
-     * Return access token associated with the code
-     * @param string $code
-     * @return string|false
-     */
-    protected function accessToken($code)
-    {
-        $response = $this->requestAccessToken($code);
-
-        $accessToken = $response->json();
-        if (empty($accessToken['access_token']))
-        {
-            return false;
-        }
-
-        return $accessToken['access_token'];
-    }
-
-    /**
      * POST request for connected account access token
      * @param string $code
      * @return \GuzzleHttp\Message\Response
      */
-    private function requestAccessToken($code)
+    protected function requestAccessToken($code)
     {
         return $this->client->post('https://github.com/login/oauth/access_token', [
             'body' => [
@@ -56,39 +38,39 @@ class Github extends AbstractProvider {
     }
 
     /**
-     * Return user object associated with the token
+     * Return user array associated with the token
      * @param string $token
-     * @return \Igniweb\OAuth\User|false
+     * @return array|false
      */
     protected function userByToken($token)
     {
-        $response = $this->requestUser($token);
+        $request = $this->client->get('https://api.github.com/user', [
+            'headers' => ['Authorization' => 'token ' . $token],
+        ]);
 
-        $user = $response->json();
-        if (empty($user) or ! empty($user['error']))
+        $response = $request->json();
+        if (empty($response) or ! empty($response['error']))
         {
             return false;
         }
 
+        return $response;
+    }
+
+    /**
+     * Map object to fit \Igniweb\OAuth\User object
+     * @param string $user
+     * @return \Igniweb\OAuth\User|false
+     */
+    protected function mapUser(array $user)
+    {
         return new User([
             'provider' => 'github',
             'login'    => $user['login'],
             'email'    => $user['email'],
             'name'     => $user['name'],
-            'url'      => $user['html_url'],
+            'url'      => 'https://github.com/' . $user['login'],
             'avatar'   => $user['avatar_url'],
-        ]);
-    }
-
-    /**
-     * GET request to return user for associated access token
-     * @param string $token
-     * @return \GuzzleHttp\Message\Response
-     */
-    private function requestUser($token)
-    {
-        return $this->client->get('https://api.github.com/user', [
-            'headers' => ['Authorization' => 'token ' . $token],
         ]);
     }
 

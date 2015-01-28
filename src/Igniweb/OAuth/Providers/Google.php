@@ -1,6 +1,7 @@
 <?php namespace Igniweb\OAuth\Providers;
 
 use Igniweb\OAuth\User;
+use Igniweb\OAuth\Exceptions\InvalidTokenException;
 
 class Google extends AbstractProvider {
     
@@ -21,29 +22,11 @@ class Google extends AbstractProvider {
     }
 
     /**
-     * Return access token associated with the code
-     * @param string $code
-     * @return string|false
-     */
-    protected function accessToken($code)
-    {
-        $response = $this->requestAccessToken($code);
-
-        $accessToken = $response->json();
-        if (empty($accessToken['access_token']) or ! empty($accessToken['error']))
-        {
-            return false;
-        }
-
-        return $accessToken['access_token'];
-    }
-
-    /**
      * POST request for connected account access token
      * @param string $code
      * @return \GuzzleHttp\Message\Response
      */
-    private function requestAccessToken($code)
+    protected function requestAccessToken($code)
     {
         return $this->client->post('https://accounts.google.com/o/oauth2/token', [
             'body' => [
@@ -57,20 +40,36 @@ class Google extends AbstractProvider {
     }
 
     /**
-     * Return user object associated with the token
+     * Return user array associated with the token
      * @param string $token
-     * @return \Igniweb\OAuth\User|false
+     * @return array|false
      */
     protected function userByToken($token)
     {
-        $response = $this->requestUser($token);
+        $url = 'https://www.googleapis.com/plus/v1/people/me?' . http_build_query([
+            // https://developers.google.com/+/api/latest/people?hl=fr
+            'fields'       => 'id,url,name(familyName,givenName),displayName,emails/value,image/url',
+            'alt'          => 'json',
+            'access_token' => $token,
+        ]);
+        $request = $this->client->get($url);
 
-        $user = $response->json();
-        if (empty($user) or ! empty($user['error']))
+        $response = $request->json();
+        if (empty($response) or ! empty($response['error']))
         {
             return false;
         }
 
+        return $response;
+    }
+
+    /**
+     * Map object to fit \Igniweb\OAuth\User object
+     * @param string $user
+     * @return \Igniweb\OAuth\User|false
+     */
+    protected function mapUser(array $user)
+    {
         return new User([
             'provider' => 'google',
             'login'    => null,
@@ -79,23 +78,6 @@ class Google extends AbstractProvider {
             'url'      => $user['url'],
             'avatar'   => ! empty($user['image']['url']) ? $user['image']['url'] : null,
         ]);
-    }
-
-    /**
-     * GET request to return user for associated access token
-     * @param string $token
-     * @return \GuzzleHttp\Message\Response
-     */
-    private function requestUser($token)
-    {
-        $url = 'https://www.googleapis.com/plus/v1/people/me?' . http_build_query([
-            // https://developers.google.com/+/api/latest/people?hl=fr
-            'fields'       => 'id,url,name(familyName,givenName),displayName,emails/value,image/url',
-            'alt'          => 'json',
-            'access_token' => $token,
-        ]);
-
-        return $this->client->get($url);
     }
 
 }

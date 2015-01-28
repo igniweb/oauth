@@ -1,6 +1,7 @@
 <?php namespace Igniweb\OAuth\Providers;
 
 use Igniweb\OAuth\User;
+use Igniweb\OAuth\Exceptions\InvalidTokenException;
 
 class Instagram extends AbstractProvider {
     
@@ -27,23 +28,25 @@ class Instagram extends AbstractProvider {
     }
 
     /**
-     * Return access token associated with the code
+     * Return access token associated with code
+     * Overrided to store the $response['user'] to avoid future userByToken() request
      * @param string $code
-     * @return string|false
+     * @throws \Igniweb\OAuth\Exceptions\InvalidTokenException
+     * @return string
      */
-    protected function accessToken($code)
+    public function accessToken($code)
     {
-        $response = $this->requestAccessToken($code);
+        $request = $this->requestAccessToken($code);
 
-        $accessToken = $response->json();
-        if (empty($accessToken['access_token']))
+        $response = $request->json();
+        if (empty($response['access_token']))
         {
-            return false;
+            throw new InvalidTokenException('Invalid Instagram token matching "' . $code . '"');
         }
 
-        $this->user = $accessToken['user'];
+        $this->user = $response['user'];
 
-        return $accessToken['access_token'];
+        return $response['access_token'];
     }
 
     /**
@@ -51,7 +54,7 @@ class Instagram extends AbstractProvider {
      * @param string $code
      * @return \GuzzleHttp\Message\Response
      */
-    private function requestAccessToken($code)
+    protected function requestAccessToken($code)
     {
         return $this->client->post('https://api.instagram.com/oauth/access_token', [
             'body' => [
@@ -65,24 +68,29 @@ class Instagram extends AbstractProvider {
     }
 
     /**
-     * Return user object associated with the token
+     * Return user array associated with the token
      * @param string $token
-     * @return \Igniweb\OAuth\User|false
+     * @return array|false
      */
     protected function userByToken($token)
     {
-        if (empty($this->user))
-        {
-            return false;
-        }
+        return $this->user;
+    }
 
+    /**
+     * Map object to fit \Igniweb\OAuth\User object
+     * @param string $user
+     * @return \Igniweb\OAuth\User|false
+     */
+    protected function mapUser(array $user)
+    {
         return new User([
             'provider' => 'instagram',
-            'login'    => $this->user['username'],
+            'login'    => $user['username'],
             'email'    => null,
-            'name'     => $this->user['full_name'],
-            'url'      => $this->user['website'],
-            'avatar'   => $this->user['profile_picture'],
+            'name'     => ! empty($user['full_name']) ? $user['full_name'] : null,
+            'url'      => 'https://instagram.com/' . $user['username'],
+            'avatar'   => $user['profile_picture'],
         ]);
     }
 
