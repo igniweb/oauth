@@ -1,7 +1,6 @@
 <?php namespace Igniweb\OAuth\Providers;
 
 use Igniweb\OAuth\User;
-use Igniweb\OAuth\Exceptions\InvalidTokenException;
 
 class Google extends AbstractProvider {
     

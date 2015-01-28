@@ -41,7 +41,7 @@ class Instagram extends AbstractProvider {
         $response = $request->json();
         if (empty($response['access_token']))
         {
-            throw new InvalidTokenException('Invalid Instagram token matching "' . $code . '"');
+            throw new InvalidTokenException('Invalid token matching "' . $code . '"');
         }
 
         $this->user = $response['user'];
