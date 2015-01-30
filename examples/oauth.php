@@ -8,6 +8,7 @@ $config = require __DIR__ . '/config.php';
 $client = new GuzzleHttp\Client;
 
 $scopes = [
+    'facebook'  => ['email']
     'github'    => ['user:email'],
     'google'    => ['profile', 'email'],
     'instagram' => ['basic'],
@@ -25,7 +26,7 @@ foreach ($config as $provider => $providerConfig)
 }
 
 if ( ! empty($_GET['code']))
-{
+{var_dump($_GET['code']); exit;
     $guessedProvider = 'google'; // 4/wPlICgLXErQCGORuRxAg0iGl1tbcoxTWomjoicAVh7g.4vJWv1f6HxweoiIBeO6P2m_IhY7qlQI
     switch (strlen($_GET['code']))
     {
