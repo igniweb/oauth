@@ -8,7 +8,7 @@ $config = require __DIR__ . '/config.php';
 $client = new GuzzleHttp\Client;
 
 $scopes = [
-    'facebook'  => ['email']
+    'facebook'  => ['public_profile ', 'email'],
     'github'    => ['user:email'],
     'google'    => ['profile', 'email'],
     'instagram' => ['basic'],
@@ -26,9 +26,10 @@ foreach ($config as $provider => $providerConfig)
 }
 
 if ( ! empty($_GET['code']))
-{var_dump($_GET['code']); exit;
+{
+    $codeLen = strlen($_GET['code']);
     $guessedProvider = 'google'; // 4/wPlICgLXErQCGORuRxAg0iGl1tbcoxTWomjoicAVh7g.4vJWv1f6HxweoiIBeO6P2m_IhY7qlQI
-    switch (strlen($_GET['code']))
+    switch ($codeLen)
     {
         case 20: // d1f01d6c0114b4ad708f
             $guessedProvider = 'github';
@@ -36,6 +37,10 @@ if ( ! empty($_GET['code']))
         case 32: // 107154554124434f9073b2740f421591
             $guessedProvider = 'instagram';
             break;
+    }
+    if ($codeLen > 300)
+    {   // AQBXfNA2kfSXWTHhM6NCBNSyqbBzz4NrQUkXuZU_rEJ0Jg666nsL8TI0KU-1hYAe4gqIBojjVoOufbj0Ut2kC1F5nvFEysrCiHEPU2I0vzSqsvx2BDVx_s-b2UlZsHtjk0l4-SA_HFt4_hitMGwy7QgcjavYi3oDK6fnf0-X-0YrKj30cJ8GJTAt9KsD6Z0MWNoa96jJfauY-n27SOOuiwu32VB9f-ayWxdl6oux3Vwt2MbdcrVXFVRGcFAx9LtLp8G8nxvG_iQUT91YLxMuY1iLx-RptEznJFbhiDC31TjiNiFj28HXtXzOjpfaVMZOUvooJk2eZ4lJuo65SyTYIlvH
+        $guessedProvider = 'facebook';
     }
     
     $token = $$guessedProvider->accessToken($_GET['code']);
