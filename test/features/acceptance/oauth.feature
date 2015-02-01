@@ -17,3 +17,8 @@ Feature: Signin via oauth2
         Given I am on "/oauth.php"
         When I follow "signin_instagram"
         Then I should see "Instagram"
+
+    Scenario: Click on Facebook signin button
+        Given I am on "/oauth.php"
+        When I follow "signin_facebook"
+        Then I should see "Facebook"
