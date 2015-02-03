@@ -25,7 +25,11 @@ abstract class AbstractProvider implements ProviderInterface {
     public $redirectUrl;
 
     /**
-     * Queried scopes
+     * Queried scopes ; for examples
+     * 'facebook'  => ['public_profile ', 'email'],
+     * 'github'    => ['user:email'],
+     * 'google'    => ['profile', 'email'],
+     * 'instagram' => ['basic'],
      * @var array
      */
     public $scopes;
